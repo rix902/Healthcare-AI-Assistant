@@ -2,8 +2,9 @@ streamlit
 requests
 pypdf
 pillow
-pytesseract
 reportlab
 easyocr
 torch
 torchvision
+opencv-python-headless
+numpy
