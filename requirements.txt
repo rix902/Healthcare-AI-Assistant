@@ -4,3 +4,6 @@ pypdf
 pillow
 pytesseract
 reportlab
+easyocr
+torch
+torchvision
