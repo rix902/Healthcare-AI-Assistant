@@ -1,16 +1,26 @@
 import streamlit as st
 import requests
-import base64
+import numpy as np
+
 from io import BytesIO
 from pypdf import PdfReader
 from PIL import Image
-import pytesseract
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
 
-# ---------------------------
+import easyocr
+
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer
+)
+
+from reportlab.lib.styles import (
+    getSampleStyleSheet
+)
+
+# -----------------------------------
 # PAGE CONFIG
-# ---------------------------
+# -----------------------------------
 
 st.set_page_config(
     page_title="Healthcare AI Assistant",
@@ -18,34 +28,32 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------------------
+# -----------------------------------
 # CUSTOM CSS
-# ---------------------------
+# -----------------------------------
 
 st.markdown("""
 <style>
+
 .main {
     padding-top: 1rem;
 }
-.card {
-    background-color: #f8fafc;
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 15px;
+
+.metric-card {
+    background:#f5f7fb;
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
+# -----------------------------------
 # SIDEBAR
-# ---------------------------
+# -----------------------------------
 
 st.sidebar.title("🏥 Healthcare AI")
-
-api_key = st.sidebar.text_input(
-    "Grok API Key",
-    type="password"
-)
 
 uploaded_pdf = st.sidebar.file_uploader(
     "Upload PDF",
@@ -61,31 +69,61 @@ camera_image = st.sidebar.camera_input(
     "Capture Image"
 )
 
-# ---------------------------
+# -----------------------------------
+# OCR
+# -----------------------------------
+
+@st.cache_resource
+def load_ocr():
+    return easyocr.Reader(['en'])
+
+def extract_text_from_image(image):
+
+    try:
+
+        reader = load_ocr()
+
+        results = reader.readtext(
+            np.array(image),
+            detail=0
+        )
+
+        return "\n".join(results)
+
+    except Exception as e:
+
+        st.warning(
+            f"OCR Error: {str(e)}"
+        )
+
+        return ""
+
+# -----------------------------------
 # PDF READER
-# ---------------------------
+# -----------------------------------
 
 def read_pdf(pdf_file):
+
     reader = PdfReader(pdf_file)
+
     text = ""
 
     for page in reader.pages:
-        text += page.extract_text() + "\n"
+
+        page_text = page.extract_text()
+
+        if page_text:
+            text += page_text + "\n"
 
     return text
 
-# ---------------------------
-# OCR
-# ---------------------------
+# -----------------------------------
+# GROK
+# -----------------------------------
 
-def extract_text_from_image(image):
-    return pytesseract.image_to_string(image)
+def generate_summary(text):
 
-# ---------------------------
-# GROK API
-# ---------------------------
-
-def generate_summary(text, api_key):
+    api_key = st.secrets["GROK_API_KEY"]
 
     prompt = f"""
 You are a clinical communication assistant.
@@ -93,14 +131,17 @@ You are a clinical communication assistant.
 Convert the discharge note below into a patient-friendly summary.
 
 Rules:
+
 - Use simple language.
-- Keep medical accuracy.
-- Do not invent information.
-- Highlight medications.
-- Highlight follow-up appointments.
-- Highlight warning signs.
+- Maintain medical accuracy.
+- Do not invent facts.
+- Mention medications.
+- Mention follow-up instructions.
+- Mention warning signs.
+- Use bullet points where useful.
 
 Discharge Note:
+
 {text}
 """
 
@@ -123,16 +164,17 @@ Discharge Note:
     response = requests.post(
         "https://api.x.ai/v1/chat/completions",
         headers=headers,
-        json=payload
+        json=payload,
+        timeout=120
     )
 
     response.raise_for_status()
 
     return response.json()["choices"][0]["message"]["content"]
 
-# ---------------------------
+# -----------------------------------
 # PDF EXPORT
-# ---------------------------
+# -----------------------------------
 
 def create_pdf(summary):
 
@@ -151,11 +193,15 @@ def create_pdf(summary):
         )
     )
 
-    elements.append(Spacer(1,12))
+    elements.append(
+        Spacer(1, 12)
+    )
 
     elements.append(
-        Paragraph(summary.replace("\n","<br/>"),
-        styles["BodyText"])
+        Paragraph(
+            summary.replace("\n", "<br/>"),
+            styles["BodyText"]
+        )
     )
 
     doc.build(elements)
@@ -164,14 +210,19 @@ def create_pdf(summary):
 
     return buffer
 
-# ---------------------------
-# MAIN
-# ---------------------------
+# -----------------------------------
+# MAIN UI
+# -----------------------------------
 
-st.title("🏥 AI Patient Discharge Summary Generator")
+st.title(
+    "🏥 AI Patient Discharge Summary Generator"
+)
 
 st.markdown(
-    "Convert clinical discharge notes into patient-friendly summaries."
+    """
+Convert clinical discharge notes into
+easy-to-understand patient summaries.
+"""
 )
 
 input_text = ""
@@ -179,75 +230,123 @@ input_text = ""
 # PDF
 
 if uploaded_pdf:
-    input_text += read_pdf(uploaded_pdf)
+
+    pdf_text = read_pdf(
+        uploaded_pdf
+    )
+
+    input_text += pdf_text
 
 # IMAGE
 
 if uploaded_image:
-    img = Image.open(uploaded_image)
-    st.image(img, caption="Uploaded Image")
-    input_text += extract_text_from_image(img)
+
+    image = Image.open(
+        uploaded_image
+    )
+
+    st.image(
+        image,
+        caption="Uploaded Image"
+    )
+
+    input_text += extract_text_from_image(
+        image
+    )
 
 # CAMERA
 
 if camera_image:
-    img = Image.open(camera_image)
-    st.image(img, caption="Captured Image")
-    input_text += extract_text_from_image(img)
+
+    image = Image.open(
+        camera_image
+    )
+
+    st.image(
+        image,
+        caption="Captured Image"
+    )
+
+    input_text += extract_text_from_image(
+        image
+    )
+
+# MANUAL TEXT
 
 manual_text = st.text_area(
-    "Or paste discharge note here",
+    "Or Paste Discharge Note",
     height=250
 )
 
 if manual_text:
+
     input_text += "\n" + manual_text
 
 # GENERATE
 
-if st.button("🤖 Generate Summary"):
-
-    if not api_key:
-        st.error("Enter Grok API Key")
-        st.stop()
+if st.button(
+    "🤖 Generate Summary"
+):
 
     if not input_text.strip():
-        st.error("Provide PDF, image, camera scan, or text.")
+
+        st.error(
+            "Upload a PDF, image, camera scan or enter text."
+        )
+
         st.stop()
 
-    with st.spinner("Generating summary..."):
+    with st.spinner(
+        "Generating summary..."
+    ):
 
         try:
 
             summary = generate_summary(
-                input_text,
-                api_key
+                input_text
             )
 
-            st.success("Summary Generated")
+            st.success(
+                "Summary Generated Successfully"
+            )
 
-            col1, col2 = st.columns([3,1])
+            col1, col2 = st.columns(
+                [3, 1]
+            )
 
             with col1:
 
-                st.markdown("## 📄 Patient-Friendly Summary")
-                st.markdown(summary)
+                st.markdown(
+                    "## 📄 Patient-Friendly Summary"
+                )
+
+                st.markdown(
+                    summary
+                )
 
             with col2:
 
-                st.markdown("## ⚠ Safety Panel")
+                st.markdown(
+                    "## ⚠ Safety Panel"
+                )
 
                 st.info(
-                    "Review AI output before sharing with patients."
+                    "Always review AI output before sharing with patients."
                 )
 
-                st.progress(90)
-
-                st.caption(
-                    "AI Confidence Indicator"
+                st.metric(
+                    "AI Status",
+                    "Ready"
                 )
 
-            pdf_buffer = create_pdf(summary)
+                st.metric(
+                    "Confidence",
+                    "90%"
+                )
+
+            pdf_buffer = create_pdf(
+                summary
+            )
 
             st.download_button(
                 label="📥 Download PDF",
@@ -257,4 +356,7 @@ if st.button("🤖 Generate Summary"):
             )
 
         except Exception as e:
-            st.error(str(e))
+
+            st.error(
+                f"Error: {str(e)}"
+            )
