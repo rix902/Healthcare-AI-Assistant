@@ -4,6 +4,9 @@ import io
 import time
 from PIL import Image
 import numpy as np
+import pytesseract
+from PIL import Image
+import io
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -31,23 +34,23 @@ def get_groq_client():
     return Groq(api_key=key) if key else None
 
 # ── OCR – lazy load, graceful failure ─────────────────────────────────────────
-@st.cache_resource(show_spinner=False)
 def load_ocr():
     try:
-        import easyocr
-        return easyocr.Reader(["en"], gpu=False)
+        import pytesseract
+        return True
     except Exception as e:
-        st.exception(e)
-        return None
+        st.error(f"OCR Error: {e}")
+        return False
+
 
 def extract_text_from_image(image_bytes: bytes) -> str:
-    reader = load_ocr()
-    if reader is None:
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+        text = pytesseract.image_to_string(image, lang="eng")
+        return text.strip()
+    except Exception as e:
+        st.error(f"Image OCR Error: {e}")
         return ""
-    arr = np.array(Image.open(io.BytesIO(image_bytes)).convert("RGB"))
-    results = reader.readtext(arr, detail=0)
-    return "\n".join(results)
-
 # ── PDF extraction ────────────────────────────────────────────────────────────
 def extract_text_from_pdf(uploaded_file) -> str:
     try:
