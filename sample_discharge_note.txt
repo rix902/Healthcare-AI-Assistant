@@ -1,0 +1,66 @@
+HOSPITAL DISCHARGE SUMMARY
+==========================
+Patient Name: [REDACTED]
+Date of Admission: 12/05/2024
+Date of Discharge: 18/05/2024
+Attending Physician: Dr. Priya Sharma, MD (Cardiology)
+
+DIAGNOSIS
+---------
+Primary: Acute Myocardial Infarction (STEMI) – Left Anterior Descending Artery
+Secondary: Type 2 Diabetes Mellitus, Hypertension
+
+HOSPITAL COURSE
+---------------
+Patient presented to the emergency department with acute chest pain, diaphoresis,
+and shortness of breath. ECG showed ST-elevation in leads V1-V4. Patient underwent
+emergency percutaneous coronary intervention (PCI) with drug-eluting stent placement
+in the LAD artery. Post-procedure course was uneventful. Ejection fraction on echo:
+45%. Patient was monitored for 6 days and remained hemodynamically stable.
+
+MEDICATIONS ON DISCHARGE
+-------------------------
+1. Aspirin 75 mg – once daily (indefinitely)
+2. Clopidogrel 75 mg – once daily (for 12 months, do not stop without doctor's advice)
+3. Atorvastatin 40 mg – once daily at bedtime
+4. Ramipril 2.5 mg – once daily in the morning
+5. Metoprolol Succinate 25 mg – once daily
+6. Metformin 500 mg – twice daily with meals (for diabetes)
+7. Nitroglycerin 0.5 mg sublingual tablet – use ONLY during chest pain episodes; seek emergency care immediately
+
+FOLLOW-UP INSTRUCTIONS
+-----------------------
+- Cardiology OPD: 3 weeks from discharge (Dr. Priya Sharma)
+- Echo and stress test: 6 weeks from discharge
+- HbA1c and lipid profile blood test: 6 weeks
+- BP monitoring at home: daily, target <130/80 mmHg
+
+WARNING SIGNS – GO TO EMERGENCY IMMEDIATELY IF:
+------------------------------------------------
+- Chest pain or pressure, even mild
+- Shortness of breath at rest
+- Sudden severe sweating
+- Pain radiating to arm, jaw, or back
+- Dizziness or fainting
+- Palpitations lasting more than 5 minutes
+
+ACTIVITY RESTRICTIONS
+---------------------
+- No strenuous physical activity for 4 weeks
+- No driving for 2 weeks
+- Light walking (10-15 min, 2x/day) encouraged from day 3
+- Return to work: desk job – 4 weeks; manual labour – consult cardiologist
+
+DIET INSTRUCTIONS
+-----------------
+- Low-salt diet (< 2g sodium/day)
+- Low-fat, low-cholesterol diet
+- Avoid fried foods, red meat, and processed foods
+- Diabetic diet: avoid sugar and white carbohydrates
+- Drink 6-8 glasses of water daily
+
+WOUND CARE (Catheter site – right wrist)
+-----------------------------------------
+- Keep the dressing dry for 48 hours
+- Watch for swelling, redness, or bleeding
+- Remove dressing after 48 hours; keep clean and dry thereafter
