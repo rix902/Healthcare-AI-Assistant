@@ -33,11 +33,11 @@ def get_groq_client():
 # ── OCR – lazy load, graceful failure ─────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def load_ocr():
-    """Load EasyOCR – returns None if unavailable (e.g. no torch)."""
     try:
         import easyocr
         return easyocr.Reader(["en"], gpu=False)
     except Exception as e:
+        st.exception(e)
         return None
 
 def extract_text_from_image(image_bytes: bytes) -> str:
