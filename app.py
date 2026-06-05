@@ -270,6 +270,12 @@ with st.sidebar:
         st.markdown('<div class="stat-chip">✅ Summary ready</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sidebar-footer">MedClear v1.0 · Groq + Llama 3.1</div>', unsafe_allow_html=True)
+st.write("Tesseract Test")
+
+try:
+    st.success(pytesseract.get_tesseract_version())
+except Exception as e:
+    st.error(e)
 
 # ════════════════════════════════════════════════════════════════════════════
 #  HERO
