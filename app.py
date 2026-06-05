@@ -5,8 +5,6 @@ import time
 from PIL import Image
 import numpy as np
 import pytesseract
-from PIL import Image
-import io
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -36,7 +34,7 @@ def get_groq_client():
 # ── OCR – lazy load, graceful failure ─────────────────────────────────────────
 def load_ocr():
     try:
-        import pytesseract
+        pytesseract.get_tesseract_version()
         return True
     except Exception as e:
         st.error(f"OCR Error: {e}")
@@ -46,8 +44,18 @@ def load_ocr():
 def extract_text_from_image(image_bytes: bytes) -> str:
     try:
         image = Image.open(io.BytesIO(image_bytes))
-        text = pytesseract.image_to_string(image, lang="eng")
+
+        # OCR accuracy improve
+        image = image.convert("L")
+
+        text = pytesseract.image_to_string(
+            image,
+            lang="eng",
+            config="--psm 6"
+        )
+
         return text.strip()
+
     except Exception as e:
         st.error(f"Image OCR Error: {e}")
         return ""
@@ -233,7 +241,7 @@ with st.sidebar:
     else:
         st.markdown('<div class="api-status err">🔴 AI Engine: Not configured<br><small>Add GROQ_API_KEY to secrets.toml</small></div>', unsafe_allow_html=True)
 
-    ocr_ok = load_ocr() is not None
+   ocr_ok = load_ocr()
     if ocr_ok:
         st.markdown('<div class="api-status ok" style="margin-top:6px">🟢 OCR Engine: Ready</div>', unsafe_allow_html=True)
     else:
