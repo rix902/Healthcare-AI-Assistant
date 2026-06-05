@@ -226,43 +226,55 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.markdown('<div class="sidebar-section-title">🌐 Output Language</div>', unsafe_allow_html=True)
-    lang = st.selectbox("lang", list(LANGUAGE_NAMES.keys()),
-                         index=list(LANGUAGE_NAMES.keys()).index(st.session_state["language"]),
-                         label_visibility="collapsed")
+    st.markdown(
+        '<div class="sidebar-section-title">🌐 Output Language</div>',
+        unsafe_allow_html=True
+    )
+
+    lang = st.selectbox(
+        "lang",
+        list(LANGUAGE_NAMES.keys()),
+        index=list(LANGUAGE_NAMES.keys()).index(
+            st.session_state["language"]
+        ),
+        label_visibility="collapsed"
+    )
+
     st.session_state["language"] = lang
-    st.caption(f"Summaries in **{LANGUAGE_NAMES[lang]}**")
+
+    st.caption(
+        f"Summaries in **{LANGUAGE_NAMES[lang]}**"
+    )
 
     st.markdown("---")
 
-        api_ok = bool(get_api_key())
+    api_ok = bool(get_api_key())
+
     if api_ok:
-        st.markdown('<div class="api-status ok">🟢 AI Engine: Connected</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="api-status ok">🟢 AI Engine: Connected</div>',
+            unsafe_allow_html=True
+        )
     else:
-        st.markdown('<div class="api-status err">🔴 AI Engine: Not configured<br><small>Add GROQ_API_KEY to secrets.toml</small></div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="api-status err">🔴 AI Engine: Not configured</div>',
+            unsafe_allow_html=True
+        )
 
     ocr_ok = load_ocr()
 
     if ocr_ok:
-        st.markdown('<div class="api-status ok" style="margin-top:6px">🟢 OCR Engine: Ready</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="api-status ok" style="margin-top:6px">🟢 OCR Engine: Ready</div>',
+            unsafe_allow_html=True
+        )
     else:
-        st.markdown('<div class="api-status warn" style="margin-top:6px">🟡 OCR: Not available<br><small>PDF & text input still work</small></div>', unsafe_allow_html=True)
-    st.markdown("---")
+        st.markdown(
+            '<div class="api-status warn" style="margin-top:6px">🟡 OCR: Not available</div>',
+            unsafe_allow_html=True
+        )
 
-    st.markdown("""
-    <div class="safety-panel">
-      <div class="safety-title">🛡️ Safety Guidelines</div>
-      <ul class="safety-list">
-        <li>AI uses only your uploaded document</li>
-        <li>No medical info is invented</li>
-        <li>Always consult a professional</li>
-        <li>Not a substitute for clinical advice</li>
-      </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
+    st.markdown("---") 
     if st.session_state["extracted_text"]:
         wc = len(st.session_state["extracted_text"].split())
         st.markdown(f'<div class="stat-chip">📝 {wc} words extracted</div>', unsafe_allow_html=True)
