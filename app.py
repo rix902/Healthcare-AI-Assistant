@@ -235,18 +235,18 @@ with st.sidebar:
 
     st.markdown("---")
 
-    api_ok = bool(get_api_key())
+        api_ok = bool(get_api_key())
     if api_ok:
         st.markdown('<div class="api-status ok">🟢 AI Engine: Connected</div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="api-status err">🔴 AI Engine: Not configured<br><small>Add GROQ_API_KEY to secrets.toml</small></div>', unsafe_allow_html=True)
 
-   ocr_ok = load_ocr()
+    ocr_ok = load_ocr()
+
     if ocr_ok:
         st.markdown('<div class="api-status ok" style="margin-top:6px">🟢 OCR Engine: Ready</div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="api-status warn" style="margin-top:6px">🟡 OCR: Not available<br><small>PDF & text input still work</small></div>', unsafe_allow_html=True)
-
     st.markdown("---")
 
     st.markdown("""
