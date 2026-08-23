@@ -20,8 +20,10 @@ with open("style.css") as f:
 
 # ── API key from Streamlit secrets only ───────────────────────────────────────
 def get_api_key() -> str:
-    return "gsk_YOUR_ACTUAL_API_KEY"
-
+    try:
+        return st.secrets["GROQ_API_KEY"]
+    except Exception:
+        return os.environ.get("GROQ_API_KEY", "")
 # ── Groq client ───────────────────────────────────────────────────────────────
 def get_groq_client():
     from groq import Groq
