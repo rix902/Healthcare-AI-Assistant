@@ -24,11 +24,17 @@ def get_api_key() -> str:
         return st.secrets["GROQ_API_KEY"]
     except Exception:
         return os.environ.get("GROQ_API_KEY", "")
+
 # ── Groq client ───────────────────────────────────────────────────────────────
 def get_groq_client():
     from groq import Groq
     key = get_api_key()
     return Groq(api_key=key) if key else None
+
+# NOTE: llama-3.1-8b-instant was deprecated by Groq (announced June 17, 2026).
+# Groq's official replacement recommendation is openai/gpt-oss-20b.
+# See: https://console.groq.com/docs/deprecations
+CHAT_MODEL = "openai/gpt-oss-20b"
 
 # ── OCR – lazy load, graceful failure ─────────────────────────────────────────
 def load_ocr():
@@ -58,6 +64,7 @@ def extract_text_from_image(image_bytes: bytes) -> str:
     except Exception as e:
         st.error(f"Image OCR Error: {e}")
         return ""
+
 # ── PDF extraction ────────────────────────────────────────────────────────────
 def extract_text_from_pdf(uploaded_file) -> str:
     try:
@@ -132,27 +139,34 @@ def generate_summary(text: str, language: str) -> str:
     if not client:
         return "⚠️ GROQ_API_KEY not configured. Add it to .streamlit/secrets.toml"
     system = SUMMARY_SYSTEM.replace("{language}", language)
-    r = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user",   "content": f"Summarise this medical document:\n\n{text}"},
-        ],
-        temperature=0.3, max_tokens=2048,
-    )
-    return r.choices[0].message.content
+    try:
+        r = client.chat.completions.create(
+            model=CHAT_MODEL,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user",   "content": f"Summarise this medical document:\n\n{text}"},
+            ],
+            temperature=0.3, max_tokens=2048,
+        )
+        return r.choices[0].message.content
+    except Exception as e:
+        st.error(f"⚠️ AI summary request failed: {e}")
+        return ""
 
 def chat_with_document(messages: list, document: str, language: str) -> str:
     client = get_groq_client()
     if not client:
         return "⚠️ API key not configured."
     system = CHAT_SYSTEM.replace("{document}", document).replace("{language}", language)
-    r = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "system", "content": system}] + messages,
-        temperature=0.3, max_tokens=1024,
-    )
-    return r.choices[0].message.content
+    try:
+        r = client.chat.completions.create(
+            model=CHAT_MODEL,
+            messages=[{"role": "system", "content": system}] + messages,
+            temperature=0.3, max_tokens=1024,
+        )
+        return r.choices[0].message.content
+    except Exception as e:
+        return f"⚠️ AI request failed: {e}"
 
 def generate_pdf_report(summary: str, language: str) -> bytes:
     from reportlab.lib.pagesizes import A4
@@ -273,7 +287,7 @@ with st.sidebar:
             unsafe_allow_html=True
         )
 
-    st.markdown("---") 
+    st.markdown("---")
     if st.session_state["extracted_text"]:
         wc = len(st.session_state["extracted_text"].split())
         st.markdown(f'<div class="stat-chip">📝 {wc} words extracted</div>', unsafe_allow_html=True)
@@ -281,12 +295,6 @@ with st.sidebar:
         st.markdown('<div class="stat-chip">✅ Summary ready</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sidebar-footer">MedClear v1.0 · Groq + Llama 3.1</div>', unsafe_allow_html=True)
-st.write("Tesseract Test")
-
-try:
-    st.success(pytesseract.get_tesseract_version())
-except Exception as e:
-    st.error(e)
 
 # ════════════════════════════════════════════════════════════════════════════
 #  HERO
@@ -442,9 +450,11 @@ with tab_input:
                         prog.progress(100)
                         time.sleep(0.15)
                         prog.empty()
-                    st.session_state["summary"]      = summary
-                    st.session_state["chat_history"] = []
-                    st.success("✅ Summary ready! Switch to the **AI Summary** tab.")
+                    if summary:
+                        st.session_state["summary"]      = summary
+                        st.session_state["chat_history"] = []
+                        st.success("✅ Summary ready! Switch to the **AI Summary** tab.")
+                    # if summary is empty, generate_summary() already showed st.error()
 
 # ─── TAB 2 ───────────────────────────────────────────────────────────────────
 with tab_summary:
